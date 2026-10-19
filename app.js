@@ -306,14 +306,23 @@
   function impLabel(n) { return n + " imposter" + (n === 1 ? "" : "s"); }
 
   function innocentOut(i) {
+    const name = state.players[i].name;
     const imps = aliveIdx("imp");
     // Imposters win if one imposter is among the last 2 players
     if (imps.length >= 1 && aliveIdx().length <= 2) {
       impostersSurvive();
       return;
     }
+    $("#outTomb").hidden = true;
+    $("#outHello").hidden = false;
+    $("#outHelloText").textContent = pick(HELLO_LINES, "hello");
+    $("#outBig").textContent = "OOPS!";
+    $("#outSub").innerHTML = esc(name) + " was innocent.<br>The imposter" + (imps.length > 1 ? "s are" : " is") + " still in.";
+    $("#outPill").textContent = aliveIdx().length + " players left · " + impLabel(imps.length);
+    $("#outNext").textContent = "Another clue round";
+    $("#outNext").dataset.action = "clues";
     play("unsuccessful");
-    startClues();
+    show("out");
   }
 
   $("#outNext").addEventListener("click", () => {
