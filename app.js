@@ -109,7 +109,6 @@
     state.roundNo = 0;
     state.chosenRounds = state.totalRounds;
     state.deck = shuffle((window.WORDS || []).slice());
-    play("start");
     startRound();
   });
 
@@ -479,7 +478,7 @@
     $("#playMore").textContent = "Play " + state.more + " more round" + (state.more === 1 ? "" : "s");
   }
   $$("[data-more]").forEach((b) => b.addEventListener("click", () => { state.more = Number(b.dataset.more); renderMore(); }));
-  $("#playMore").addEventListener("click", () => { state.totalRounds += state.more; play("start"); startRound(); });
+  $("#playMore").addEventListener("click", () => { state.totalRounds += state.more; startRound(); });
   $("#newGame").addEventListener("click", () => { resetGame(); renderSetup(); show("setup"); });
 
   function resetGame() {
