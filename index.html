@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F2E9DB" />
+  <title>Undercover! — Mood Labs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Arvo:wght@700&family=Poppins:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="stage">
+
+  <!-- 01 WELCOME -->
+  <section class="screen active" id="s-welcome">
+    <div class="hero">
+      <div class="brand"><span class="wordmark">MoOd Labs!</span><span class="presents">PRESENTS</span></div>
+      <h1 class="title">WHO IS<br>THE<br>IMPOSTER?</h1>
+      <img class="hero-moody" src="assets/moody-classic.png" alt="Moody" />
+    </div>
+    <ol class="steps">
+      <li><span class="num">1</span>Grab a secret card</li>
+      <li><span class="num">2</span>Say one word about it</li>
+      <li><span class="num">3</span>Vote out the imposter</li>
+    </ol>
+    <div class="sticker-hello welcome-hello">
+      <img src="assets/hello-tag.png" alt="" />
+      <span class="sticker-font">I'm totally innocent</span>
+    </div>
+    <div class="actions">
+      <button class="btn btn-pink" id="goSetup">Let's play</button>
+      <div class="link-row">
+        <button class="link" data-rules>Full rules</button>
+        <a class="link" href="https://www.moodlabs.in/pages/mini-games">Check out other games</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 SETUP -->
+  <section class="screen" id="s-setup">
+    <div class="block first">
+      <p class="h2">How many players?</p>
+      <div class="stepper">
+        <button class="step" id="minus" aria-label="Fewer players"><svg viewBox="0 0 26 26"><path d="M6 13h14"/></svg></button>
+        <span id="playerNum">6</span>
+        <button class="step" id="plus" aria-label="More players"><svg viewBox="0 0 26 26"><path d="M6 13h14M13 6v14"/></svg></button>
+      </div>
+      <p class="hint">3 to 12 players. Everyone adds their own name when they pick a card.</p>
+    </div>
+    <div class="block">
+      <p class="label-lg">Imposters</p>
+      <div class="chips" id="impChips">
+        <button class="chip selected" data-imp="1">1</button>
+        <button class="chip" data-imp="2">2</button>
+        <button class="chip" data-imp="3">3</button>
+      </div>
+      <p class="hint">2 imposters needs 5+ players, 3 needs 7+</p>
+    </div>
+    <div class="block">
+      <p class="label-lg">Rounds</p>
+      <div class="chips" id="roundChips">
+        <button class="chip" data-rounds="3">3</button>
+        <button class="chip selected" data-rounds="5">5</button>
+        <button class="chip" data-rounds="7">7</button>
+      </div>
+      <p class="hint">You can add more rounds at the end</p>
+    </div>
+    <div class="actions"><button class="btn btn-pink" id="deal">Deal the cards</button></div>
+  </section>
+
+  <!-- 03 PICK A CARD -->
+  <section class="screen" id="s-pick">
+    <div class="head">
+      <p class="kicker" id="pickKicker">PLAYER 1 OF 6</p>
+      <p class="h1" id="pickTitle">Pass the phone.<br>Who's this?</p>
+    </div>
+    <form class="name-row" id="nameForm" autocomplete="off">
+      <input id="nameInput" maxlength="14" placeholder="Your name" enterkeyhint="done" spellcheck="false" />
+    </form>
+    <p class="hint err" id="nameErr" hidden></p>
+    <div class="row-between pick-label"><span class="label-lg">Pick a card</span><span class="meta" id="cardsLeft">6 left</span></div>
+    <div class="cards" id="cards"></div>
+    <div class="actions"><button class="btn btn-pink" id="flip" disabled>Flip my card</button></div>
+  </section>
+
+  <!-- 04/05 YOUR CARD -->
+  <section class="screen dark" id="s-card">
+    <div class="tag-row"><div class="tag"><span class="dot"></span><span id="onlyLooks">Only Kabir looks</span></div></div>
+    <div class="secret" id="secret">
+      <p class="secret-kicker" id="secretKicker">YOUR SECRET WORD</p>
+      <p class="secret-word" id="secretWord">Mango</p>
+      <div class="secret-blank" id="secretBlank" hidden></div>
+      <p class="secret-note" id="secretNote">You're innocent. Find the imposter!</p>
+    </div>
+    <div class="actions">
+      <p class="hint light" id="passHint">Remember it, then pass the phone on</p>
+      <button class="btn btn-chalk" id="hidePass">Hide &amp; pass</button>
+    </div>
+  </section>
+
+  <!-- 06 WHO STARTS -->
+  <section class="screen" id="s-start">
+    <div class="topbar"><p class="kicker" data-round-label>ROUND 1 OF 5</p><button class="menu-btn" aria-label="Menu"><svg viewBox="0 0 20 20"><path d="M3 6h14M3 14h14"/></svg></button></div>
+    <div class="turn">
+      <p class="kicker" id="clueKicker">CLUE TIME</p>
+      <div class="name-sticker" id="starter">Kabir</div>
+      <p class="goes">goes first</p>
+      <p class="body">Go round the circle. Everyone says one word that shows they know the secret word, without giving it away.</p>
+      <div class="still">
+        <p class="kicker" id="stillLabel">STILL IN · 6</p>
+        <div class="still-chips" id="stillChips"></div>
+      </div>
+    </div>
+    <div class="actions"><button class="btn btn-pink" id="toVote">Everyone's done · Vote</button></div>
+  </section>
+
+  <!-- 07 VOTE -->
+  <section class="screen" id="s-vote">
+    <div class="topbar"><p class="kicker" data-round-label>ROUND 1 OF 5</p><button class="menu-btn" aria-label="Menu"><svg viewBox="0 0 20 20"><path d="M3 6h14M3 14h14"/></svg></button></div>
+    <div class="question">
+      <img src="assets/moody-brick.png" alt="" />
+      <p class="h1">Who's the<br>imposter?</p>
+    </div>
+    <p class="hint pad">Argue it out, then tap who the group votes out.</p>
+    <div class="vote-tiles" id="voteTiles"></div>
+    <p class="hint pad small" id="crossedHint" hidden>Crossed out = already voted out</p>
+    <div class="actions">
+      <button class="btn btn-pink" id="voteOut" disabled>Pick someone</button>
+      <button class="link" id="backToClues">Back to clues</button>
+    </div>
+  </section>
+
+  <!-- 08 OUT (innocent, or imposter who guessed wrong while others remain) -->
+  <section class="screen" id="s-out">
+    <div class="celebrate">
+      <div class="out-sticker">
+        <div class="sticker-tomb" id="outTomb" hidden>
+          <img src="assets/tombstone.png" alt="" />
+          <img class="tomb-moody" src="assets/moody-ink.png" alt="" />
+          <span class="sticker-font" id="tombText">Here lies Kabir. So close.</span>
+        </div>
+        <div class="sticker-hello out-hello" id="outHello">
+          <img src="assets/hello-tag.png" alt="" />
+          <span class="sticker-font" id="outHelloText">Told you I was innocent</span>
+        </div>
+      </div>
+      <p class="big-word" id="outBig">OOPS!</p>
+      <p class="sub" id="outSub">Riya was innocent.<br>The imposter is still in.</p>
+    </div>
+    <div class="info"><div class="pill" id="outPill">5 players left · 1 imposter</div></div>
+    <div class="actions"><button class="btn btn-ink" id="outNext">Another clue round</button></div>
+  </section>
+
+  <!-- 09 CAUGHT – GUESS -->
+  <section class="screen" id="s-caught">
+    <div class="celebrate">
+      <img class="caught-moody" src="assets/moody-pink.png" alt="" />
+      <p class="big-word ink">CAUGHT!</p>
+      <p class="sub ink" id="caughtSub">Dev was the imposter</p>
+    </div>
+    <form class="guess-card" id="guessForm" autocomplete="off">
+      <p class="guess-q" id="guessQ">Dev, one last chance. What was the secret word?</p>
+      <input id="guessInput" maxlength="30" placeholder="Type the word" enterkeyhint="done" spellcheck="false" autocapitalize="off" autocorrect="off" />
+      <p class="guess-note">Get it right and you'll win the round!</p>
+    </form>
+    <div class="actions"><button class="btn btn-pink" id="lockIn" disabled>Lock it in</button></div>
+  </section>
+
+  <!-- 10 ROUND RESULT -->
+  <section class="screen dark" id="s-result">
+    <div class="result">
+      <p class="kicker pinkish" id="resKicker">DEV GUESSED "PAPAYA"</p>
+      <p class="res-big" id="resBig">NICE<br>TRY!</p>
+      <p class="res-sub" id="resSub">The word was</p>
+      <div class="word-sticker" id="resWord">Mango</div>
+    </div>
+    <div class="points"><div class="points-sticker" id="resPoints"><b>+10</b><span>to everyone else</span></div></div>
+    <p class="mini-score" id="resScores"></p>
+    <div class="sticker-bin" id="resBin" hidden>
+      <img src="assets/bin.png" alt="" />
+      <span class="sticker-font" id="resBinText">This group's ability to be subtle</span>
+    </div>
+    <div class="actions"><button class="btn btn-chalk" id="nextRound">Next round</button></div>
+  </section>
+
+  <!-- 11 FINAL -->
+  <section class="screen dark" id="s-final">
+    <div class="champion">
+      <div class="sticker-trophy">
+        <img src="assets/trophy.png" alt="" />
+        <span class="sticker-font" id="trophyText">Trust issues: unlocked</span>
+      </div>
+      <p class="winner-kicker" id="winnerKicker">AFTER 5 ROUNDS, THE WINNER IS</p>
+      <div class="winner-sticker" id="winnerName">Dev!</div>
+    </div>
+    <ol class="standings" id="standings"></ol>
+    <div class="more">
+      <span>Keep going?</span>
+      <button class="more-chip" data-more="1">+1</button>
+      <button class="more-chip selected" data-more="2">+2</button>
+      <button class="more-chip" data-more="3">+3</button>
+    </div>
+    <div class="actions">
+      <button class="btn btn-chalk" id="playMore">Play 2 more rounds</button>
+      <div class="link-row">
+        <button class="link light" id="newGame">New game</button>
+        <a class="link light" href="https://www.moodlabs.in/pages/mini-games">Check out other games</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <div class="overlay" id="menu" hidden>
+    <div class="sheet">
+      <div class="grabber"></div>
+      <p class="sheet-title">Menu</p>
+      <button class="row" data-rules><svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="10.5"/><path d="M10 10a3 3 0 1 1 4.2 2.8c-.8.4-1.2 1-1.2 1.9v.6"/><circle cx="13" cy="19" r=".6"/></svg>How to play</button>
+      <button class="row" id="soundRow"><svg viewBox="0 0 26 26"><path d="M4 10h4l6-5v16l-6-5H4z"/><path d="M18 9.5a5 5 0 0 1 0 7M21 6.5a9 9 0 0 1 0 13"/></svg>Sound<span class="switch on" id="soundSwitch"><span></span></span></button>
+      <a class="row" href="https://www.moodlabs.in/pages/mini-games"><svg viewBox="0 0 26 26"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="15" y="3" width="8" height="8" rx="2"/><rect x="3" y="15" width="8" height="8" rx="2"/><rect x="15" y="15" width="8" height="8" rx="2"/></svg>Check out other games</a>
+      <button class="row danger" id="endGame"><svg viewBox="0 0 26 26"><path d="M10 4H5v18h5M16 8l5 5-5 5M21 13H10"/></svg><span id="endLabel">End game</span></button>
+    </div>
+  </div>
+
+  <!-- RULES -->
+  <div class="overlay" id="rules" hidden>
+    <div class="sheet">
+      <div class="grabber"></div>
+      <p class="sheet-title">How to play</p>
+      <ol class="rules-list">
+        <li>Pass the phone round. Everyone adds their name and picks a secret card.</li>
+        <li>Everyone gets the same word, except the <b>imposter</b>, whose card is blank.</li>
+        <li>Go round the circle. Each person says <b>one word</b> that shows they know the secret word.</li>
+        <li>Vote someone out. Innocent? Play another clue round.</li>
+        <li>Imposter caught? They get one guess at the word. Right: <b>+20</b> to them. Wrong: <b>+10</b> to everyone else.</li>
+        <li>If the imposter survives till only 2 are left, they get <b>+20</b>.</li>
+      </ol>
+      <button class="btn btn-ink" id="closeRules">Got it</button>
+    </div>
+  </div>
+
+  <div id="confetti"></div>
+</div>
+
+<script>
+  window.addEventListener("error", function (e) {
+    var d = document.createElement("div");
+    d.style.cssText = "position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#711611;color:#F2E9DB;font:14px/1.4 sans-serif;padding:12px 16px";
+    d.textContent = "Something broke: " + (e.message || "unknown error") + " (" + (e.filename || "").split("/").pop() + ":" + (e.lineno || "") + ")";
+    document.body.appendChild(d);
+  });
+</script>
+<script src="words.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>
