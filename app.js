@@ -306,21 +306,14 @@
   function impLabel(n) { return n + " imposter" + (n === 1 ? "" : "s"); }
 
   function innocentOut(i) {
-    const name = state.players[i].name;
-    const imps = aliveIdx("imp"), inns = aliveIdx("inn");
-    const survived = imps.length >= inns.length;
-    $("#outTomb").hidden = true;
-    $("#outHello").hidden = false;
-    $("#outHelloText").textContent = pick(HELLO_LINES, "hello");
-    $("#outBig").textContent = "OOPS!";
-    $("#outSub").innerHTML = survived
-      ? esc(name) + " was innocent.<br>Too few of you left to win!"
-      : esc(name) + " was innocent.<br>The imposter" + (imps.length > 1 ? "s are" : " is") + " still in.";
-    $("#outPill").textContent = aliveIdx().length + " players left · " + impLabel(imps.length);
-    $("#outNext").textContent = survived ? "Reveal the imposter" + (imps.length > 1 ? "s" : "") : "Another clue round";
-    $("#outNext").dataset.action = survived ? "survived" : "clues";
+    const imps = aliveIdx("imp");
+    // Imposters win if one imposter is among the last 2 players
+    if (imps.length >= 1 && aliveIdx().length <= 2) {
+      impostersSurvive();
+      return;
+    }
     play("unsuccessful");
-    show("out");
+    startClues();
   }
 
   $("#outNext").addEventListener("click", () => {
@@ -354,6 +347,11 @@
     }
     const imps = aliveIdx("imp");
     if (imps.length > 0) {
+      // Imposters win if one is among the last 2 players
+      if (aliveIdx().length <= 2) {
+        impostersSurvive();
+        return;
+      }
       // more imposters still hiding: keep the word secret and play on
       $("#outHello").hidden = true;
       $("#outTomb").hidden = false;
