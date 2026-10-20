@@ -10,19 +10,18 @@
   const MIN_PLAYERS = 3, MAX_PLAYERS = 12;
 
   const TROPHY_LINES = ["Trust issues: unlocked", "Professional liar", "Never trust this one", "Will never shut up about this win"];
-  const TOMB_INNOCENT = ["Here lies {name}. Innocent.", "Here lies {name}. Wrongly accused.", "RIP {name}. Was telling the truth."];
-  const TOMB_IMPOSTER = ["Here lies {name}. Bad guesser.", "RIP {name}. So close."];
   const HELLO_LINES = ["Told you I was innocent", "Trust me, bro", "I'm totally innocent"];
   const BIN_STOLEN = ["This group's ability to be subtle", "Your 'subtle' clues", "Everyone's poker face"];
   const BIN_SURVIVED = ["This group's detective skills", "Your gut instincts", "This group's ability to spot a liar"];
 
   const state = {
-    total: 6, imposters: 1, totalRounds: 5,
+    total: 6, imposters: 1, totalRounds: 5, decoyOn: true,
     players: [],        // { name, score } in the order they joined
     roundNo: 0,
     deck: [],           // words not used yet this game
     word: "",
-    cards: [],          // "imp" | "inn" per face-down card
+    decoyWord: "",
+    cards: [],          // "imp" | "decoy" | "inn" per face-down card
     taken: {},          // card index -> player index
     role: [],           // per player: "imp" | "inn"
     alive: [],          // per player
@@ -82,6 +81,16 @@
   }
 
   const aliveIdx = (role) => state.players.map((_, i) => i).filter((i) => state.alive[i] && (!role || state.role[i] === role));
+  const badIdx = () => state.players.map((_, i) => i).filter((i) => state.role[i] === "imp" || state.role[i] === "decoy");
+  const decoyIdx = () => state.role.indexOf("decoy");
+  // "bad" = imposter side wins now, "good" = everyone on it is out, "on" = keep playing
+  function outcome() {
+    const bad = aliveIdx().filter((i) => state.role[i] !== "inn").length;
+    const good = aliveIdx("inn").length;
+    if (bad === 0) return "good";
+    if (bad >= good) return "bad";
+    return "on";
+  }
   const roundLabel = () => $$("[data-round-label]").forEach((e) => (e.textContent = "ROUND " + state.roundNo + " OF " + state.totalRounds));
 
   /* ---------- Setup ---------- */
@@ -98,7 +107,16 @@
       b.classList.toggle("selected", n === state.imposters);
     });
     $$("[data-rounds]").forEach((b) => b.classList.toggle("selected", Number(b.dataset.rounds) === state.totalRounds));
+    const need = 2 * state.imposters + 3;
+    const allowed = state.total >= need;
+    $("#decoyNeeds").textContent = "NEEDS " + need + "+ PLAYERS";
+    $("#decoyRow").disabled = !allowed;
+    const on = allowed && state.decoyOn;
+    $("#decoySwitch").classList.toggle("on", on);
+    $("#decoyRow").setAttribute("aria-checked", on);
   }
+  const decoyActive = () => state.decoyOn && state.total >= 2 * state.imposters + 3;
+  $("#decoyRow").addEventListener("click", () => { state.decoyOn = !state.decoyOn; renderSetup(); });
   $("#minus").addEventListener("click", () => { state.total = Math.max(MIN_PLAYERS, state.total - 1); renderSetup(); });
   $("#plus").addEventListener("click", () => { state.total = Math.min(MAX_PLAYERS, state.total + 1); renderSetup(); });
   $$("[data-imp]").forEach((b) => b.addEventListener("click", () => { state.imposters = Number(b.dataset.imp); renderSetup(); }));
@@ -108,21 +126,28 @@
     state.players = [];
     state.roundNo = 0;
     state.chosenRounds = state.totalRounds;
+    state.useDecoy = decoyActive();
     state.deck = shuffle((window.WORDS || []).slice());
+    play("start");
     startRound();
   });
 
   /* ---------- Round: deal & pick ---------- */
   function nextWord() {
-    if (!state.deck.length) state.deck = shuffle((window.WORDS || []).filter((w) => w !== state.word));
-    return state.deck.pop();
+    if (!state.deck.length) state.deck = shuffle((window.WORDS || []).filter((p) => p.indexOf(state.word) < 0));
+    const pair = state.deck.pop();
+    const flip = Math.random() < 0.5;
+    return { word: flip ? pair[1] : pair[0], decoy: flip ? pair[0] : pair[1] };
   }
 
   function startRound() {
     state.roundNo += 1;
-    state.word = nextWord();
+    const w = nextWord();
+    state.word = w.word;
+    state.decoyWord = w.decoy;
     const n = state.roundNo === 1 ? state.total : state.players.length;
-    state.cards = shuffle(Array.from({ length: n }, (_, i) => (i < state.imposters ? "imp" : "inn")));
+    const decoys = state.useDecoy ? 1 : 0;
+    state.cards = shuffle(Array.from({ length: n }, (_, i) => (i < state.imposters ? "imp" : i < state.imposters + decoys ? "decoy" : "inn")));
     state.taken = {};
     state.role = [];
     state.alive = Array(n).fill(true);
@@ -217,7 +242,7 @@
     if (imp) {
       $("#secretNote").innerHTML = "You're the imposter.<br>Blend in!";
     } else {
-      $("#secretWord").textContent = state.word;
+      $("#secretWord").textContent = state.role[i] === "decoy" ? state.decoyWord : state.word;
       fitText($("#secretWord"), 64, 30, 290);
       $("#secretNote").textContent = "You're innocent. Find the imposter!";
     }
@@ -242,7 +267,7 @@
   /* ---------- Clues ---------- */
   function startClues() {
     state.clueRound += 1;
-    const inn = aliveIdx("inn");
+    const inn = aliveIdx().filter((k) => state.role[k] !== "imp");
     const starter = inn[Math.floor(Math.random() * inn.length)];
     roundLabel();
     $("#clueKicker").textContent = state.clueRound === 1 ? "CLUE TIME" : "CLUE ROUND " + state.clueRound;
@@ -297,35 +322,66 @@
       $("#lockIn").disabled = true;
       play("success");
       show("caught");
+    } else if (state.role[i] === "decoy") {
+      decoyOut(i);
     } else {
       innocentOut(i);
     }
   });
 
   function impLabel(n) { return n + " imposter" + (n === 1 ? "" : "s"); }
+  const decoyAlive = () => { const d = decoyIdx(); return d >= 0 && state.alive[d]; };
+  function stillIn() {
+    const imps = aliveIdx("imp").length;
+    if (imps > 0) return (imps > 1 ? "The imposters are" : "The imposter is") + " still in.";
+    return "The Decoy is still in.";
+  }
+  function pillText() {
+    const imps = aliveIdx("imp").length;
+    return aliveIdx().length + " players left · " + (imps > 0 ? impLabel(imps) : "Decoy still in");
+  }
+  function outSticker(kind, text) {
+    $("#outHello").hidden = kind !== "hello";
+    $("#outAuto").hidden = kind !== "auto";
+    if (kind === "hello") $("#outHelloText").textContent = text;
+    else $("#autoText").textContent = text;
+  }
+  function setOutNext(result) {
+    const btn = $("#outNext");
+    btn.dataset.action = result;
+    btn.textContent = result === "bad" ? "Reveal the imposter" + (state.imposters > 1 ? "s" : "")
+      : result === "good" ? "Reveal the word" : "Another clue round";
+  }
 
   function innocentOut(i) {
     const name = state.players[i].name;
-    const imps = aliveIdx("imp");
-    // Imposters win if one imposter is among the last 2 players
-    if (imps.length >= 1 && aliveIdx().length <= 2) {
-      impostersSurvive();
-      return;
-    }
-    $("#outTomb").hidden = true;
-    $("#outHello").hidden = false;
-    $("#outHelloText").textContent = pick(HELLO_LINES, "hello");
+    const result = outcome();
+    outSticker("hello", pick(HELLO_LINES, "hello"));
     $("#outBig").textContent = "OOPS!";
-    $("#outSub").innerHTML = esc(name) + " was innocent.<br>The imposter" + (imps.length > 1 ? "s are" : " is") + " still in.";
-    $("#outPill").textContent = aliveIdx().length + " players left · " + impLabel(imps.length);
-    $("#outNext").textContent = "Another clue round";
-    $("#outNext").dataset.action = "clues";
+    $("#outSub").innerHTML = esc(name) + " was innocent.<br>" + (result === "bad" ? "Too few of you left to win!" : stillIn());
+    $("#outPill").textContent = pillText();
+    setOutNext(result);
     play("unsuccessful");
     show("out");
   }
 
+  function decoyOut(i) {
+    const name = state.players[i].name;
+    const result = outcome();
+    outSticker("hello", "Wait, we had different words?");
+    $("#outBig").textContent = "DECOY!";
+    $("#outSub").innerHTML = esc(name) + " had a different word.<br>" +
+      (result === "good" ? "That's everyone caught!" : result === "bad" ? "But too few of you are left!" : "One down, " + stillIn().charAt(0).toLowerCase() + stillIn().slice(1));
+    $("#outPill").textContent = result === "good" ? aliveIdx().length + " players left · all caught" : pillText();
+    setOutNext(result);
+    play("success");
+    show("out");
+  }
+
   $("#outNext").addEventListener("click", () => {
-    if ($("#outNext").dataset.action === "survived") impostersSurvive();
+    const a = $("#outNext").dataset.action;
+    if (a === "bad") impostersSurvive();
+    else if (a === "good") groupWins("ALL CAUGHT!");
     else startClues();
   });
 
@@ -341,61 +397,61 @@
     $("#guessInput").blur();
     const p = state.players[i];
     if (norm(guess) === norm(state.word)) {
-      p.score += IMPOSTER_POINTS;
+      const team = awardBadSide();
       showResult({
         theme: "pink",
         kicker: p.name.toUpperCase() + ' GUESSED "' + state.word.toUpperCase() + '"',
         big: "GOOD ONE!",
         sub: "The imposter got it",
-        points: "+" + IMPOSTER_POINTS, pointsTo: "to " + p.name,
+        points: "+" + IMPOSTER_POINTS, pointsTo: (team.length > 1 ? "each to " : "to ") + joinNames(team),
         bin: BIN_STOLEN,
       });
       play("success");
       return;
     }
-    const imps = aliveIdx("imp");
-    if (imps.length > 0) {
-      // Imposters win if one is among the last 2 players
-      if (aliveIdx().length <= 2) {
-        impostersSurvive();
-        return;
-      }
-      // more imposters still hiding: keep the word secret and play on
-      $("#outHello").hidden = true;
-      $("#outTomb").hidden = false;
-      $("#tombText").textContent = pick(TOMB_IMPOSTER, "tombImp").replace("{name}", p.name);
-      $("#outBig").textContent = "GOT ONE!";
-      $("#outSub").innerHTML = esc(p.name) + " guessed wrong.<br>" + impLabel(imps.length) + " still in.";
-      $("#outPill").textContent = aliveIdx().length + " players left · " + impLabel(imps.length);
-      $("#outNext").textContent = "Another clue round";
-      $("#outNext").dataset.action = "clues";
-      play("unsuccessful");
-      show("out");
-      return;
-    }
-    // every imposter caught: the group wins
+    const result = outcome();
+    if (result === "good") { groupWins(p.name.toUpperCase() + ' GUESSED "' + guess.toUpperCase() + '"'); return; }
+    // someone on the imposter side is still hiding: keep the word secret
+    outSticker("auto", p.name + "'s auto is here. Bye!");
+    $("#outBig").textContent = "GOT ONE!";
+    $("#outSub").innerHTML = esc(p.name) + " guessed wrong.<br>" +
+      (result === "bad" ? "But too few of you are left!" : aliveIdx("imp").length > 0 ? impLabel(aliveIdx("imp").length) + " still in." : "But the Decoy is still in!");
+    $("#outPill").textContent = pillText();
+    setOutNext(result);
+    play("unsuccessful");
+    show("out");
+  }
+
+  // imposter side (imposters + Decoy) all score, whether or not they were voted out
+  function awardBadSide() {
+    const team = badIdx();
+    team.forEach((k) => (state.players[k].score += IMPOSTER_POINTS));
+    return team.map((k) => state.players[k].name);
+  }
+
+  function groupWins(kicker) {
     state.players.forEach((q, k) => { if (state.role[k] === "inn") q.score += CATCH_POINTS; });
     showResult({
       theme: "dark",
-      kicker: p.name.toUpperCase() + ' GUESSED "' + guess.toUpperCase() + '"',
+      kicker,
       big: "NICE<br>TRY!",
       sub: "The word was",
-      points: "+" + CATCH_POINTS, pointsTo: "to everyone else",
+      points: "+" + CATCH_POINTS, pointsTo: "to every innocent",
     });
     play("success");
     confetti();
   }
 
   function impostersSurvive() {
-    const imps = aliveIdx("imp");
-    imps.forEach((k) => (state.players[k].score += IMPOSTER_POINTS));
-    const names = imps.map((k) => state.players[k].name);
+    const impsAlive = aliveIdx("imp");
+    const imps = state.players.map((_, k) => k).filter((k) => state.role[k] === "imp").map((k) => state.players[k].name);
+    const team = awardBadSide();
     showResult({
       theme: "pink",
-      kicker: imps.length > 1 ? "THE IMPOSTERS SURVIVED" : "THE IMPOSTER SURVIVED",
+      kicker: impsAlive.length === 0 ? "THE DECOY SURVIVED" : impsAlive.length > 1 ? "THE IMPOSTERS SURVIVED" : "THE IMPOSTER SURVIVED",
       big: "SNEAKY!",
-      sub: esc(joinNames(names)) + (imps.length > 1 ? " were the imposters." : " was the imposter.") + "<br>The word was",
-      points: "+" + IMPOSTER_POINTS, pointsTo: (imps.length > 1 ? "each to " : "to ") + joinNames(names),
+      sub: esc(joinNames(imps)) + (imps.length > 1 ? " were the imposters." : " was the imposter.") + "<br>The word was",
+      points: "+" + IMPOSTER_POINTS, pointsTo: (team.length > 1 ? "each to " : "to ") + joinNames(team),
       bin: BIN_SURVIVED,
     });
     play("success");
@@ -418,6 +474,12 @@
     $("#resBig").innerHTML = r.big;
     $("#resSub").innerHTML = r.sub;
     $("#resWord").textContent = state.word;
+    const d = decoyIdx();
+    $("#resDecoy").hidden = d < 0;
+    if (d >= 0) {
+      $("#resDecoyName").textContent = state.players[d].name + ", the Decoy, had";
+      $("#resDecoyWord").textContent = state.decoyWord;
+    }
     $("#resPoints").innerHTML = "<b></b><span></span>";
     $("#resPoints b").textContent = r.points;
     $("#resPoints span").textContent = r.pointsTo;
@@ -478,7 +540,7 @@
     $("#playMore").textContent = "Play " + state.more + " more round" + (state.more === 1 ? "" : "s");
   }
   $$("[data-more]").forEach((b) => b.addEventListener("click", () => { state.more = Number(b.dataset.more); renderMore(); }));
-  $("#playMore").addEventListener("click", () => { state.totalRounds += state.more; startRound(); });
+  $("#playMore").addEventListener("click", () => { state.totalRounds += state.more; play("start"); startRound(); });
   $("#newGame").addEventListener("click", () => { resetGame(); renderSetup(); show("setup"); });
 
   function resetGame() {

@@ -53,7 +53,8 @@ img { display: block; }
 .btn:disabled { opacity: .45; cursor: default; }
 .btn-pink { background: var(--pink); color: var(--ink); }
 .btn-ink { background: var(--ink); color: var(--chalk); box-shadow: 0 6px 0 rgba(0, 0, 0, .25); }
-.btn-chalk { background: var(--chalk); color: var(--ink); box-shadow: 0 6px 0 rgba(0, 0, 0, .3); }
+.btn-chalk { background: var(--chalk); color: var(--ink); box-shadow: 0 6px 0 var(--ink); }
+.dark .btn-chalk { box-shadow: 0 6px 0 var(--pink); }
 .dark .btn-pink { box-shadow: 0 6px 0 rgba(0, 0, 0, .35); }
 #playMore { box-shadow: 0 6px 0 var(--pink); }
 .link { font-weight: 600; font-size: 15px; text-decoration: underline; color: var(--ink); }
@@ -83,9 +84,9 @@ img { display: block; }
 .welcome-hello span { left: 40px; top: 86px; width: 190px; font-size: 19px; line-height: 22px; }
 
 /* 02 Setup */
-.block { display: flex; flex-direction: column; gap: 12px; padding: 30px 24px 0; }
-.block.first { padding-top: 52px; }
-.stepper { height: 110px; border-radius: 28px; border: 3px solid var(--ink); display: flex; align-items: center; justify-content: space-between; padding: 0 18px; }
+.block { display: flex; flex-direction: column; gap: 12px; padding: 24px 24px 0; }
+.block.first { padding-top: 40px; }
+.stepper { height: 96px; border-radius: 28px; border: 3px solid var(--ink); display: flex; align-items: center; justify-content: space-between; padding: 0 18px; }
 .stepper span { font-weight: 900; font-size: 72px; letter-spacing: -0.04em; }
 .step { width: 60px; height: 60px; border-radius: 30px; background: var(--ink); display: flex; align-items: center; justify-content: center; }
 .step svg { width: 26px; height: 26px; fill: none; stroke: var(--chalk); stroke-width: 3.5; stroke-linecap: round; }
@@ -94,6 +95,16 @@ img { display: block; }
 .chip { flex: 1; height: 58px; border-radius: 18px; border: 2.5px solid var(--ink); font-weight: 800; font-size: 22px; }
 .chip.selected { background: var(--ink); color: var(--chalk); font-weight: 900; }
 .chip:disabled { opacity: .3; cursor: default; }
+
+.decoy-row { display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 16px 0 20px; border-radius: 20px; border: 2.5px solid var(--ink); text-align: left; }
+.decoy-row:disabled { opacity: .4; cursor: default; }
+.decoy-text { display: flex; flex-direction: column; gap: 2px; }
+.decoy-text b { font-weight: 800; font-size: 19px; }
+.decoy-text small { font-weight: 600; font-size: 12px; letter-spacing: .08em; opacity: .6; }
+.decoy-row .switch { margin-left: 0; background: rgba(25, 19, 72, .25); }
+.decoy-row .switch.on { background: var(--ink); }
+.decoy-row .switch span { background: var(--chalk); }
+.decoy-row .switch.on span { background: var(--pink); }
 
 /* 03 Pick a card */
 .head { display: flex; flex-direction: column; gap: 6px; padding: 48px 24px 0; }
@@ -171,6 +182,9 @@ img { display: block; }
 .celebrate { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 70px 24px 0; text-align: center; }
 .out-sticker { width: 250px; height: 220px; display: flex; align-items: center; justify-content: center; }
 .sticker-tomb { position: relative; width: 190px; height: 220px; transform: rotate(-5deg); }
+.sticker-auto { position: relative; width: 172px; height: 219px; transform: rotate(8deg); }
+.sticker-auto img { width: 100%; height: 100%; object-fit: contain; }
+.sticker-auto span { position: absolute; left: 28px; top: 36px; width: 117px; font-size: 15px; line-height: 18px; text-align: center; color: var(--chalk); overflow-wrap: anywhere; }
 .out-hello { width: 250px; height: 170px; transform: rotate(6deg); margin-top: -40px; }
 .out-hello span { left: 38px; top: 80px; width: 174px; font-size: 16px; line-height: 19px; }
 .sticker-tomb > img:first-child { width: 100%; height: 100%; object-fit: contain; }
@@ -198,6 +212,10 @@ img { display: block; }
 .res-sub { font-weight: 700; font-size: 16px; opacity: .8; padding-top: 14px; }
 .word-sticker { padding: 12px 30px 10px; border-radius: 24px; background: var(--chalk); color: var(--ink); box-shadow: 6px 6px 0 var(--pink); transform: rotate(-2deg); font-weight: 900; font-size: 44px; letter-spacing: -0.04em; max-width: 100%; overflow-wrap: anywhere; }
 .pink .word-sticker { box-shadow: 6px 6px 0 var(--ink); }
+.decoy-line { display: flex; align-items: center; gap: 8px; padding-top: 16px; }
+.decoy-line span { font-weight: 600; font-size: 14px; opacity: .75; }
+.decoy-line b { padding: 3px 12px; border-radius: 12px; border: 2px dashed var(--pink); color: var(--pink); font-weight: 800; font-size: 16px; }
+.pink .decoy-line b { border-color: var(--ink); color: var(--ink); }
 .points { display: flex; justify-content: center; padding: 34px 24px 0; }
 .points-sticker { display: flex; align-items: baseline; gap: 8px; padding: 10px 20px; border-radius: 18px; background: var(--pink); color: var(--ink); transform: rotate(2deg); }
 .points-sticker b { font-weight: 900; font-size: 26px; }

@@ -67,6 +67,13 @@
       </div>
       <p class="hint">You can add more rounds at the end</p>
     </div>
+    <div class="block">
+      <button class="decoy-row" id="decoyRow" type="button" role="switch" aria-checked="true">
+        <span class="decoy-text"><b>Add a Decoy</b><small id="decoyNeeds">NEEDS 5+ PLAYERS</small></span>
+        <span class="switch on" id="decoySwitch"><span></span></span>
+      </button>
+      <p class="hint">One player secretly gets a similar word (Papaya, not Mango). They're on the imposter's side but don't know it.</p>
+    </div>
     <div class="actions"><button class="btn btn-pink" id="deal">Deal the cards</button></div>
   </section>
 
@@ -136,10 +143,9 @@
   <section class="screen" id="s-out">
     <div class="celebrate">
       <div class="out-sticker">
-        <div class="sticker-tomb" id="outTomb" hidden>
-          <img src="assets/tombstone.png" alt="" />
-          <img class="tomb-moody" src="assets/moody-ink.png" alt="" />
-          <span class="sticker-font" id="tombText">Here lies Kabir. So close.</span>
+        <div class="sticker-auto" id="outAuto" hidden>
+          <img src="assets/auto.png" alt="" />
+          <span class="sticker-font" id="autoText">Dev's auto is here. Bye!</span>
         </div>
         <div class="sticker-hello out-hello" id="outHello">
           <img src="assets/hello-tag.png" alt="" />
@@ -150,7 +156,7 @@
       <p class="sub" id="outSub">Riya was innocent.<br>The imposter is still in.</p>
     </div>
     <div class="info"><div class="pill" id="outPill">5 players left · 1 imposter</div></div>
-    <div class="actions"><button class="btn btn-ink" id="outNext">Another clue round</button></div>
+    <div class="actions"><button class="btn btn-pink" id="outNext">Another clue round</button></div>
   </section>
 
   <!-- 09 CAUGHT – GUESS -->
@@ -175,6 +181,7 @@
       <p class="res-big" id="resBig">NICE<br>TRY!</p>
       <p class="res-sub" id="resSub">The word was</p>
       <div class="word-sticker" id="resWord">Mango</div>
+      <div class="decoy-line" id="resDecoy" hidden><span id="resDecoyName">Riya, the Decoy, had</span><b id="resDecoyWord">Papaya</b></div>
     </div>
     <div class="points"><div class="points-sticker" id="resPoints"><b>+10</b><span>to everyone else</span></div></div>
     <p class="mini-score" id="resScores"></p>
@@ -235,6 +242,7 @@
         <li>Vote someone out. Innocent? Play another clue round.</li>
         <li>Imposter caught? They get one guess at the word. Right: <b>+20</b> to them. Wrong: <b>+10</b> to everyone else.</li>
         <li>If the imposter survives till only 2 are left, they get <b>+20</b>.</li>
+        <li><b>Decoy</b> (optional): one player gets a similar word and doesn't know it. They're on the imposter's side, so the group only wins once both are out.</li>
       </ol>
       <button class="btn btn-ink" id="closeRules">Got it</button>
     </div>
